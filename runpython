@@ -1,0 +1,7 @@
+pkill -u tabbott ipython
+sleep 1
+rm pyun.txt
+
+nohup ipython notebook --ip='*' --pylab inline &> pyun.txt &
+sleep 2s
+cat pyun.txt | sed -n /system/p
