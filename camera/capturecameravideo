@@ -1,0 +1,38 @@
+#!/bin/bash
+
+# this loop runs forever
+while true; do
+
+  # video date, the day we started
+  VDATE=`date +%Y%m%d`
+
+  # this loop takes one day's photos
+  # 
+  while [ $(( `date +%s` % 86400 )) -gt 350 ] ; do  # loop until it's just-after-midnight
+    
+    while [ $(( `date +%s` % 300 )) -gt 2 ] ; do  # wait until it's a multiple of 5 minutes
+      sleep 1
+    done
+    DATE=`date +%Y%m%d-%H%M%S`
+    wget http://10.97.242.9/oneshotimage.jpg -t 3 -q
+    convert oneshotimage.jpg -resize 50% "HighElev-$DATE.jpg"
+    cp "HighElev-$DATE.jpg" "photos/HighElev-$DATE.jpg"  # keep both for now
+    echo "Photo Taken at $DATE"
+    rm oneshotimage.jpg   # remove the fullsize original, wget doesn't overwrite!
+    if [ `du -s | cut -f 1` -ge 1000000 ] ; then echo "Directory is now too large, more than 1 GB! Stopping script"; exit 1; fi
+    sleep 250
+
+  done  # all-day loop
+  echo "dropped out of loop at `date` about to create video"
+
+  # create the video
+  ffmpeg-2.6.2/ffmpeg-2.6.2-64bit-static/ffmpeg -loglevel 'warning' -n -framerate 10 -pattern_type glob -i "/home/tabbott/camera/photos/High*.jpg" -c:v libx264 -vf format=yuv420p -preset slow "VideoHighElev-$VDATE.mp4"
+  echo "Video created for $VDATE at `date`"
+  sleep 10
+
+  # delete the pictures
+  rm /home/tabbott/camera/photos/*.jpg
+
+
+# loop forever
+done

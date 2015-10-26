@@ -1,0 +1,14 @@
+#!/bin/bash
+
+while true; do
+  while [ $(( `date +%s` % 300 )) -gt 2 ] ; do
+    sleep 1
+  done
+  DATE=`date +%Y%m%d-%H%M%S`
+  wget http://10.97.242.9/oneshotimage.jpg -t 3 -q
+  convert oneshotimage.jpg -resize 50% "HighElev-$DATE.jpg"
+  rm oneshotimage.jpg
+  echo "Photo Taken at $DATE"
+  if [ `du | cut -f 1` -ge 2000000 ]; then echo "Directory is now too large, more than 1 GB! Stopping script"; exit 1; fi
+  sleep 250
+done

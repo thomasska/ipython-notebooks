@@ -1,0 +1,59 @@
+#!/bin/bash
+
+echo "!!!!!!!!!!!!!!!!!!!!!! Starting CapVid at `date`"
+# initialise values with current equation, so none of them are true immediately
+oldMinTimer=$(( (`date +%s` - 2) % 120 ))
+oldDayTimer=$(( (`date +%s` - 10810) % 86400 ))
+sleep 2  # so they become stale
+
+
+# the infinite loop
+while true; do
+
+  minTimer=$(( (`date +%s` - 2) % 120 ))        # rolls over 2 seconds before Every-5-minutes
+  dayTimer=$(( (`date +%s` - 10810) % 86400 ))  # rolls over 10 seconds before Every-Day-5am
+
+  if [ $minTimer -le $oldMinTimer ] ; then        # do the 5 minute stuff
+
+    # capture the picture, shrink and store it
+    DATE=`date +%Y%m%d-%H%M%S`
+    wget http://10.97.242.9/oneshotimage.jpg -t 3 -q -O tempimage.jpg
+    convert tempimage.jpg -resize 50% "Test-$DATE.jpg"
+    mv "Test-$DATE.jpg" "photos2/Test-$DATE.jpg" 
+    echo " CapVid photo Taken at $DATE"
+    rm tempimage.jpg   # remove the fullsize original, wget doesn't overwrite!	
+  fi
+
+
+  if [ $dayTimer -le $oldDayTimer ] ; then        # do the once-a-day stuff
+
+    # make the video
+    echo "About to create video at `date`"
+    VDATE=`date -d "yesterday 13:00 " '+%Y-%m-%d'`
+    ffmpeg-2.6.2/ffmpeg-2.6.2-64bit-static/ffmpeg -loglevel 'warning' -n -framerate 15 -pattern_type glob -i "/home/tabbott/camera/photos2/Test*.jpg" -c:v libx264 -vf format=yuv420p -preset slow "VideoHigh-$VDATE.mp4"
+
+    # delete the jpg files, if the video created successfully
+    if [ $? -eq 0 ] ; then
+      rm photos2/*.jpg 
+      echo "Video created for $VDATE at `date`, deleting the source files"
+    else
+      echo "Video creation error for $VDATE at `date`, not deleting files"
+    fi
+
+    # check that the directory isn't getting too big
+    if [ `du -s | cut -f 1` -ge 2000000 ] ; then echo "Directory more than 2 GB! Stopping."; exit 1; fi
+  fi
+
+
+  #echo "   loop waiting, at `date` mt=$minTimer omt=$oldMinTimer  dt=$dayTimer odt=$oldDayTimer"
+
+
+  # store the old values
+  oldMinTimer=$minTimer
+  oldDayTimer=$dayTimer
+  # short sleep just to keep the load of checking time down
+  sleep 10
+
+
+done   # the infinite loop
+
