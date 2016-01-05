@@ -11,7 +11,7 @@ sleep 2  # so they become stale
 while true; do
 
   minTimer=$(( (`date +%s` - 2) % 120 ))        # rolls over 2 seconds before Every-5-minutes
-  dayTimer=$(( (`date +%s` - 10810) % 86400 ))  # rolls over 10 seconds before Every-Day-5am
+  dayTimer=$(( (`date +%s` - 7210) % 86400 ))  # rolls over 10 seconds before Every-Day-4am
 
   if [ $minTimer -le $oldMinTimer ] ; then        # do the 5 minute stuff
 
