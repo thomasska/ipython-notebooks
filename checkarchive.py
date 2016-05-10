@@ -1,56 +1,50 @@
 #!/usr/bin/env python
 
-
-# Import smtplib for the actual sending function
 import smtplib
-
-# Import the email modules we'll need
+import os.path
+import time
 from email.mime.text import MIMEText
-from email.mime.image import MIMEImage
-from email.mime.multipart import MIMEMultipart
 
-# create the message body
-msg = MIMEText('Hello Thomas, here\'s a test email from Python on kat-imager2')
+# send me an email
+def warnthomas(subj,body):
+    msg = MIMEText(body)
+    msg['Subject'] = subj
+    msg['From'] = 'tabbott@ska.ac.za'
+    msg['To'] = 'tabbott@ska.ac.za'
+    s = smtplib.SMTP('smtp.kat.ac.za')
+    s.sendmail('tabbott@ska.ac.za','tabbott@ska.ac.za', msg.as_string())
+    s.quit()
 
-# me == the sender's email address
-# you == the recipient's email address
-msg['Subject'] = 'Test email from Python'
-msg['From'] = 'tabbott@ska.ac.za'
-msg['To'] = 'tabbott@ska.ac.za'
-
-# Send the message via our own SMTP server, but don't include the
-# envelope header.
-s = smtplib.SMTP('smtp.kat.ac.za')
-s.sendmail('tabbott@ska.ac.za', 'tabbott@ska.ac.za', msg.as_string())
-s.quit()
+    msg = MIMEText(body)
+    msg['Subject'] = subj
+    msg['From'] = 'tabbott@ska.ac.za'
+    msg['To'] = 'blunsky@ska.ac.za'
+    s = smtplib.SMTP('smtp.kat.ac.za')
+    s.sendmail('tabbott@ska.ac.za','blunsky@ska.ac.za', msg.as_string())
+    s.quit()
 
 
 
 
-# an email with a file attachment
 
-# Create the container (outer) email message.
-msg = MIMEMultipart()
-msg['Subject'] = 'Test email with an attachment'
-msg['From'] = 'tabbott@ska.ac.za'
-msg['To'] = 'tabbott@ska.ac.za'
-msg.preamble = 'Here is the body / preamble of the message'
+# loop to keep checking for time
+filetocheck='/var/kat/archive/data/MeerKATAR1/telescope_products/2016/04/01/1459521241.h5'
+#filetocheck='file.txt'
+laststate = False
 
-body = 'Here is a message body\n\nAnd a new line?\n\n\n Bye, Thomas'
+print 'Archive test program. Checking file %s every 30 seconds. Started at %s' % (filetocheck,time.ctime())
+warnthomas('Archive monitoring started at %s' % time.strftime('%H:%M'),'Archive test program. Checking file %s every 30 seconds. Started at %s' % (filetocheck,time.ctime()))
 
-msg.attach(MIMEText(body, 'plain'))
+while True:
+    if not os.path.exists(filetocheck) and laststate:
+        print 'Archive failure, %s not found at %s' % (filetocheck,time.ctime())
+        warnthomas('Archive Failure at %s' % time.strftime('%H:%M'),'Archive failure, %s not found at %s' % (filetocheck,time.ctime()))
+        laststate = False
+    if os.path.exists(filetocheck) and not laststate:
+        print 'Archive has returned at %s' % time.ctime()
+        warnthomas('Archive restored at %s' % time.strftime('%H:%M'),'Archive has returned at %s' % time.ctime())
+        laststate = True
 
-pngfiles=['Correlator Compiling.png','Power Detection.png']
-# Assume we know that the image files are all in PNG format
-for file in pngfiles:
-    # Open the files in binary mode.  Let the MIMEImage class automatically
-    fp = open(file, 'rb')
-    img = MIMEImage(fp.read())
-    fp.close()
-    msg.attach(img)
+    time.sleep(2)
 
-# Send the email via our own SMTP server.
-s = smtplib.SMTP('smtp.kat.ac.za')
-s.sendmail('tabbott@ska.ac.za', 'tabbott@ska.ac.za', msg.as_string())
-s.quit()
 
