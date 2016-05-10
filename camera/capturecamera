@@ -9,6 +9,6 @@ while true; do
   convert oneshotimage.jpg -resize 50% "HighElev-$DATE.jpg"
   rm oneshotimage.jpg
   echo "Photo Taken at $DATE"
-  if [ `du | cut -f 1` -ge 2000000 ]; then echo "Directory is now too large, more than 1 GB! Stopping script"; exit 1; fi
+  if [ `du -s | cut -f 1` -ge 2000000 ]; then echo "Directory is now too large, more than 1 GB! Stopping script"; exit 1; fi
   sleep 250
 done
