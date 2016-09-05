@@ -1,0 +1,29 @@
+#!/bin/bash
+# capture eskom load etc, every hour
+#
+# run this file like this:
+# nohup ./captureeskom > captureeskom.out &
+#
+# Thomas Abbott.   Revision 1, 29 Aug 2016
+
+while true; do
+  # wait until 15 minutes past the 4-hour
+  while [ $(( ( `date +%s` - (15*60) ) % (4*60*60) )) -gt 60 ] ; do
+    sleep 30
+  done
+
+  # get the eskom data
+  DATE=`date +%s`
+  wget http://www.poweralert.co.za/poweralert5/graphData.json -t 3 -O "eskom-$DATE.json" -q
+  echo "eskom capture done at $DATE"
+
+  # update the graph, in python
+  ./creategraph.py
+
+  # mail it to me
+  ./mailgraph.py
+
+  # sleep to prevent re-entering this loop after a capture
+  sleep 300
+
+done
