@@ -1,4 +1,9 @@
 #!/usr/bin/env python
+# getpower.py - runs through all the known PDUs and gets the input power readings from each.
+# produces a CSV-like output.
+# handles some errors gracefully but not intelligently - no retries
+# version 1.0   6 Oct 2016
+
 import pexpect
 
 def getreading(IP):
@@ -125,7 +130,16 @@ iplist=['10.99.3.1',
 
 
 print 'IP,Name,TotalkW,ph1kW,ph2kW,ph3kW,ph1A,ph2A,ph3A,ph1PF,ph2PF,ph3PF'
-for IP in iplist:
-    print getreading(IP)
+
+#print getreading('10.99.3.1')    # the RTS rack
+datastring = getreading('10.99.3.33')    # the rack Andre is working on
+print datastring
+print 'Rack B3 total power is %s kW' % datastring.split(',')[2]
+
 #print getreading('10.99.99.99')   # this will definitely throw an error
+
+
+#for IP in iplist:
+#    print getreading(IP)
+
 
